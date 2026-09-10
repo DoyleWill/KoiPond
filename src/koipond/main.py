@@ -5,7 +5,7 @@ import math
 import threading
 import sys
 
-from mock_controller import launch_controller
+from .mock_controller import launch_controller
 
 pygame.init()
 
