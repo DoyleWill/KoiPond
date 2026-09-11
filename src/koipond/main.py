@@ -4,14 +4,29 @@ import random
 import math
 import threading
 import sys
+import os
 
-from .mock_controller import launch_controller
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FISH_SPRITE_PATH = os.path.join(BASE_DIR, "..", "..", "assets", "Fish2.png")
+from mock_controller import launch_controller
 
 pygame.init()
 
 WIDTH, HEIGHT = 225, 300
 window_surface = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption('Koi Pond')
+
+def load_sprite_sheet(path, frame_count):
+  sheet = pygame.image.load(path).convert_alpha()
+  sheet_width, sheet_height = sheet.get_size()
+  frame_width = sheet_width // frame_count
+  frames = []
+  for i in range(frame_count):
+    frame = sheet.subsurface((i * frame_width, 0, frame_width, sheet_height)).copy()
+    frames.append(frame)
+  return frames
+
+koi_frames = load_sprite_sheet(FISH_SPRITE_PATH, 8)
 
 ui_manager = pygame_gui.UIManager((WIDTH,HEIGHT))
 
@@ -136,34 +151,22 @@ def generate_fish(count, width, height):
         'angle': random.uniform(0, math.tau),
         'speed': random.uniform(5, 20),
         'target_angle': random.uniform(0, math.tau),
-        'target_speed': random.uniform(5, 100),
+        'target_speed': random.uniform(5, 75),
         'turn_timer': random.uniform(1, 3),
         'target_food': None,
+        'anim_frame': 0,
+        'anim_distance': 0.0,
     })
   return fish
 
 
-def draw_fishes(surface, fish, bg_color):
-  r = fish['radius']
-  size = int(r * 3) + 4
-  center = size // 2
-
-  fish_surface = pygame.Surface((size, size), pygame.SRCALPHA)
-  pygame.draw.circle(fish_surface, fish['color'], (center, center), r)
-
-  angle = math.radians(fish['notch_angle'])
-  half_width = math.radians(fish['notch_width'] / 2)
-  p1 = (center, center)
-  p2 = (center + r * 1.5 * math.cos(angle - half_width),
-        center + r * 1.5 * math.sin(angle - half_width))
-  p3 = (center + r * 1.5 * math.cos(angle + half_width),
-        center + r * 1.5 * math.sin(angle + half_width))
-
-  mask = pygame.Surface((size, size), pygame.SRCALPHA)
-  pygame.draw.polygon(mask, (0, 0, 0, 255), [p1, p2, p3])
-  fish_surface.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_SUB)
-
-  surface.blit(fish_surface, (fish['x'] - center, fish['y'] - center))
+def draw_fishes(surface, fish, koi_frames):
+  frame = koi_frames[fish['anim_frame']]
+  angle_degrees = -math.degrees(fish['angle'])
+  angle_degrees -= 90
+  rotated = pygame.transform.rotate(frame, angle_degrees)
+  rect = rotated.get_rect(center=(fish['x'], fish['y']))
+  surface.blit(rotated, rect)
 
 
 def move_fish(fishes, food, time_delta, width, height):
@@ -182,16 +185,16 @@ def move_fish(fishes, food, time_delta, width, height):
       if not still_there:
         fish['target_food'] = None
       else:
-        dx = target['x'] - fish['x']
-        dy = target['y'] - fish['y']
-        distance = math.hypot(dx, dy)
+        dx_to_food = target['x'] - fish['x']
+        dy_to_food = target['y'] - fish['y']
+        distance_to_food = math.hypot(dx_to_food, dy_to_food)
 
-        if distance < fish['radius'] + target['radius'] + 2:
+        if distance_to_food < fish['radius'] + target['radius'] + 2:
           food.remove(target)
           fish['target_food'] = None
         else:
-          fish['target_angle'] = math.atan2(dy, dx)
-          if distance < 20:
+          fish['target_angle'] = math.atan2(dy_to_food, dx_to_food)
+          if distance_to_food < 20:
             fish['target_speed'] = 15
           else:
             fish['target_speed'] = 60
@@ -208,8 +211,17 @@ def move_fish(fishes, food, time_delta, width, height):
 
     fish['speed'] += (fish['target_speed'] - fish['speed']) * min(1, time_delta * 1.0)
 
-    fish['x'] += math.cos(fish['angle']) * fish['speed'] * time_delta
-    fish['y'] += math.sin(fish['angle']) * fish['speed'] * time_delta
+    dx = math.cos(fish['angle']) * fish['speed'] * time_delta
+    dy = math.sin(fish['angle']) * fish['speed'] * time_delta
+    fish['x'] += dx
+    fish['y'] += dy
+
+    distance_moved = math.hypot(dx, dy)
+    fish['anim_distance'] += distance_moved
+    distance_per_frame = 6
+    if fish['anim_distance'] >= distance_per_frame:
+      fish['anim_distance'] = 0
+      fish['anim_frame'] = (fish['anim_frame'] + 1) % len(koi_frames)
 
     margin = fish['radius']
     if fish['x'] < margin:
@@ -314,7 +326,7 @@ while is_running:
   window_surface.fill(BG_COLOR)
 
   for fish in fishes:
-    draw_food(window_surface, fish, BG_COLOR)
+    draw_fishes(window_surface, fish, koi_frames)
 
   for ripple in ripples:
     draw_ripple(window_surface, ripple)
