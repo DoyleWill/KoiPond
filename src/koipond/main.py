@@ -7,7 +7,6 @@ import sys
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FISH_SPRITE_PATH = os.path.join(BASE_DIR, "..", "..", "assets", "Fish2.png")
 from mock_controller import launch_controller
 
 pygame.init()
@@ -26,7 +25,22 @@ def load_sprite_sheet(path, frame_count):
     frames.append(frame)
   return frames
 
-koi_frames = load_sprite_sheet(FISH_SPRITE_PATH, 8)
+FISH_COLORS = [
+  "black_white_fish.png",
+  "plain_orange_fish.png",
+  "plain_white_fish.png",
+  "white_orange_fish.png",
+  "white_pink_fish.png"
+]
+
+def load_all_koi_sprites(base_dir, filenames, frame_count):
+  sprites = {}
+  for filename in filenames:
+    path = os.path.join(base_dir, "..", "..", "assets", filename)
+    sprites[filename] = load_sprite_sheet(path, frame_count)
+  return sprites
+
+koi_sprites = load_all_koi_sprites(BASE_DIR, FISH_COLORS, 8)
 
 ui_manager = pygame_gui.UIManager((WIDTH,HEIGHT))
 
@@ -143,7 +157,7 @@ def generate_fish(count, width, height):
     radius = random.randint(5, 10)
     x = random.randint(radius, width - radius)
     y = random.randint(radius, height - radius)
-    color = (255, 255, 255)
+    color = random.choice(FISH_COLORS)
     fish.append({
         'x': x, 'y': y,
         'radius': radius,
@@ -160,8 +174,9 @@ def generate_fish(count, width, height):
   return fish
 
 
-def draw_fishes(surface, fish, koi_frames):
-  frame = koi_frames[fish['anim_frame']]
+def draw_fishes(surface, fish, koi_sprites):
+  frames = koi_sprites[fish['color']]
+  frame = frames[fish['anim_frame']]
   angle_degrees = -math.degrees(fish['angle'])
   angle_degrees -= 90
   rotated = pygame.transform.rotate(frame, angle_degrees)
@@ -221,7 +236,7 @@ def move_fish(fishes, food, time_delta, width, height):
     distance_per_frame = 6
     if fish['anim_distance'] >= distance_per_frame:
       fish['anim_distance'] = 0
-      fish['anim_frame'] = (fish['anim_frame'] + 1) % len(koi_frames)
+      fish['anim_frame'] = (fish['anim_frame'] + 1) % len(koi_sprites)
 
     margin = fish['radius']
     if fish['x'] < margin:
@@ -326,7 +341,7 @@ while is_running:
   window_surface.fill(BG_COLOR)
 
   for fish in fishes:
-    draw_fishes(window_surface, fish, koi_frames)
+    draw_fishes(window_surface, fish, koi_sprites)
 
   for ripple in ripples:
     draw_ripple(window_surface, ripple)
