@@ -185,14 +185,16 @@ def draw_fishes(surface, fish, koi_sprites):
 
 
 def move_fish(fishes, food, time_delta, width, height):
-  for fish in fishes:
-    if fish['target_food'] is None:
-      unclaimed = [crumb for crumb in food if not crumb['claimed']]
-      if unclaimed:
-        chosen = random.choice(unclaimed)
-        chosen['claimed'] = True
-        fish['target_food'] = chosen
+  hungry = [fish for fish in fishes if fish['target_food'] is None]
+  random.shuffle(hungry)
+  for fish in hungry:
+    unclaimed = [crumb for crumb in food if not crumb['claimed']]
+    if unclaimed:
+      chosen = random.choice(unclaimed)
+      chosen['claimed'] = True
+      fish['target_food'] = chosen
 
+  for fish in fishes:
     if fish['target_food'] is not None:
       target = fish['target_food']
       still_there = any(crumb is target for crumb in food)
@@ -308,9 +310,15 @@ def button4_pressed():
   print("Relocated 1 Koi")
 
 
+def button5_pressed():
+  if len(fishes) >= 1:
+    fishes.pop(0)
+  print("Button 5 Pressed")
+
+
 controller_thread = threading.Thread(
   target=launch_controller,
-  args=(button1_pressed,button2_pressed,button3_pressed,button4_pressed),
+  args=(button1_pressed,button2_pressed,button3_pressed,button4_pressed,button5_pressed),
   daemon=True,
 )
 controller_thread.start()
