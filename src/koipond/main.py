@@ -11,7 +11,7 @@ from mock_controller import launch_controller
 
 pygame.init()
 
-WIDTH, HEIGHT = 225, 300
+WIDTH, HEIGHT = 320, 240
 window_surface = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption('Koi Pond')
 
@@ -27,10 +27,13 @@ def load_sprite_sheet(path, frame_count):
 
 FISH_COLORS = [
   "black_white_fish.png",
+  "black_gold_fish.png",
   "plain_orange_fish.png",
   "plain_white_fish.png",
-  "white_orange_fish.png",
-  "white_pink_fish.png"
+  "white_orange_fish_1.png",
+  "white_orange_fish_2.png",
+  # "white_red_fish.png",
+  # "white_pink_fish.png"
 ]
 
 def load_all_koi_sprites(base_dir, filenames, frame_count):
