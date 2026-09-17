@@ -4,6 +4,8 @@
 
 This project is meant to serve as the software side for a KoiPond mobile device. Heavily in development, many updates to come, so stay tuned!
 
+![KoiPond Screenshot](docs/koipond.png)
+
 ## Installation
 
 Use the provided requirements.txt file to install the necessary packages. This can be done running the following command in the root directory.
@@ -28,7 +30,9 @@ python src/koipond/main.py
 
 ## Future Updates
 
-Going forward I plan on adding the actual sprite animation for the koi fish (right now they are just white dots), as well as instructions on how to build the portable version on a Raspberry Pi, including all parts used and a guide. Much more to come, so stay tuned!
+Going forward I plan on adding the instructions on how to build the portable version on a Raspberry Pi, 
+including all parts used and a guide. I also want to add more detailed swimming animations, and one more 
+button function. Much more to come, so stay tuned!
 
 ## Credits
 
