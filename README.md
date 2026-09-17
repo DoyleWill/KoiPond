@@ -2,7 +2,7 @@
 
 # Portable Koi Pond
 
-This project is meant to serve as the software side for a KoiPond mobile device. Heavily in development, many updates to come, so stay tuned!
+This project is meant to serve as the software side for a KoiPond mobile device. Heavily in development, many updates to come, so stay tuned! 
 
 ![KoiPond Screenshot](docs/koipond.png)
 
