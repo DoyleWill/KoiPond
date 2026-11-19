@@ -44,13 +44,33 @@ def load_all_koi_sprites(base_dir, filenames, frame_count):
   return sprites
 
 koi_sprites = load_all_koi_sprites(BASE_DIR, FISH_COLORS, 8)
+TURN_FILES = {
+  "plain_white_fish.png": "plain_white_turnR.png",
+  "plain_orange_fish.png": "plain_orange_fish_turnR.png",
+  "black_gold_fish.png": "black_gold_fish_turnR.png",
+  "black_white_fish.png": "black_white_fish_turnR.png",
+  "white_orange_fish_1.png": "white_orange_fish_1_turnR.png",
+  "white_orange_fish_2.png": "white_orange_fish_2_turnR.png",
+}
+TURN_FRAME_COUNT = 7
+BEND_FULL_ANGLE = 1.2
+BEND_SMOOTHING = 6.0
+CURL_RISING  = {1: 1, 2: 2, 3: 3}
+CURL_FALLING = {1: 5, 2: 4, 3: 3}
+
+TURN_GAIN = 2.0
+TURN_EASE = 8.0
+MAX_TURN_SPEED = 2.5
+
+_turn_sheets = load_all_koi_sprites(BASE_DIR, TURN_FILES.values(), TURN_FRAME_COUNT)
+koi_turn_sprites = {color: _turn_sheets[f] for color, f in TURN_FILES.items()}
 
 ui_manager = pygame_gui.UIManager((WIDTH,HEIGHT))
 
 clock = pygame.time.Clock()
 is_running = True
 
-BG_COLOR = (2,7,7)
+BG_COLOR = (13,38,46)
 
 LILY_COLORS = [
     (34, 139, 34),
@@ -173,13 +193,22 @@ def generate_fish(count, width, height):
         'target_food': None,
         'anim_frame': 0,
         'anim_distance': 0.0,
+        'ang_vel': 0.0,
+        'bend': 0.0,
+        'bend_rising': True,
+        'turn_frame': None,
     })
   return fish
 
 
-def draw_fishes(surface, fish, koi_sprites):
-  frames = koi_sprites[fish['color']]
-  frame = frames[fish['anim_frame']]
+def draw_fishes(surface, fish, koi_sprites, koi_turn_sprites):
+  if fish['turn_frame'] is not None and fish['color'] in koi_turn_sprites:
+    frame = koi_turn_sprites[fish['color']][fish['turn_frame']]
+    if fish['bend'] < 0:
+      frame = pygame.transform.flip(frame, True, False)
+  else:
+    frames = koi_sprites[fish['color']]
+    frame = frames[fish['anim_frame'] % len(frames)]
   angle_degrees = -math.degrees(fish['angle'])
   angle_degrees -= 90
   rotated = pygame.transform.rotate(frame, angle_degrees)
@@ -227,7 +256,24 @@ def move_fish(fishes, food, time_delta, width, height):
         fish['turn_timer'] = random.uniform(1, 4)
 
     angle_diff = (fish['target_angle'] - fish['angle'] + math.pi) % math.tau - math.pi
-    fish['angle'] += angle_diff * min(1, time_delta * 1.5)
+
+    desired_vel = max(-MAX_TURN_SPEED, min(MAX_TURN_SPEED, angle_diff * TURN_GAIN))
+    fish['ang_vel'] += (desired_vel - fish['ang_vel']) * min(1, time_delta * TURN_EASE)
+    fish['angle'] += fish['ang_vel'] * time_delta
+
+    target_bend = max(-3, min(3, angle_diff / BEND_FULL_ANGLE * 3))
+    old_mag = abs(fish['bend'])
+    fish['bend'] += (target_bend - fish['bend']) * min(1, time_delta * BEND_SMOOTHING)
+    new_mag = abs(fish['bend'])
+    if abs(new_mag - old_mag) > 1e-4:
+      fish['bend_rising'] = new_mag > old_mag
+
+    level = int(new_mag + 0.5)
+    if level == 0 or fish['color'] not in koi_turn_sprites:
+      fish['turn_frame'] = None
+    else:
+      table = CURL_RISING if fish['bend_rising'] else CURL_FALLING
+      fish['turn_frame'] = table[min(level, 3)]
 
     fish['speed'] += (fish['target_speed'] - fish['speed']) * min(1, time_delta * 1.0)
 
@@ -237,11 +283,12 @@ def move_fish(fishes, food, time_delta, width, height):
     fish['y'] += dy
 
     distance_moved = math.hypot(dx, dy)
-    fish['anim_distance'] += distance_moved
-    distance_per_frame = 6
-    if fish['anim_distance'] >= distance_per_frame:
-      fish['anim_distance'] = 0
-      fish['anim_frame'] = (fish['anim_frame'] + 1) % len(koi_sprites)
+    if fish['turn_frame'] is None:
+      fish['anim_distance'] += distance_moved
+      distance_per_frame = 6
+      if fish['anim_distance'] >= distance_per_frame:
+        fish['anim_distance'] = 0
+        fish['anim_frame'] = (fish['anim_frame'] + 1) % len(koi_sprites[fish['color']])
 
     margin = fish['radius']
     if fish['x'] < margin:
@@ -352,7 +399,7 @@ while is_running:
   window_surface.fill(BG_COLOR)
 
   for fish in fishes:
-    draw_fishes(window_surface, fish, koi_sprites)
+    draw_fishes(window_surface, fish, koi_sprites, koi_turn_sprites)
 
   for ripple in ripples:
     draw_ripple(window_surface, ripple)
@@ -368,4 +415,3 @@ while is_running:
   pygame.display.update()
 
 pygame.quit()
-  
