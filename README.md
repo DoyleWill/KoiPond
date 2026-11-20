@@ -28,6 +28,28 @@ Alternatively, you can launch it directly without installing by running:
 python src/koipond/main.py
 ```
 
+## Fish:
+There are a variety of fish colors and patterns that spawn. Below is a list of every possible fish type, including archived fish.
+### Active Fish Designs
+##### Plain White Fish
+![Solid White Sprite](assets/plain_white_fish.png)
+##### Plain Orange Fish
+![Solid Orange Sprite](assets/plain_orange_fish.png)
+##### Black & Gold Fish
+![Black & Gold Sprite](assets/black_gold_fish.png)
+##### Black & White Fish
+![Black & White Sprite](assets/black_white_fish.png)
+##### White & Orange Fish 1
+![White & Orange1 Sprite](assets/black_white_fish.png)
+##### White & Orange Fish 2
+![White & Orange2 Sprite](assets/black_white_fish.png)
+
+### Archived Fish Designs
+##### White & Pink Fish
+![White & Pink Sprite](assets/archive/white_pink_fish.png)
+##### White & Red Fish
+![White & Red Sprite](assets/archive/white_red_fish.png)
+
 ## Future Updates
 
 Going forward I plan on adding the instructions on how to build the portable version on a Raspberry Pi, 
