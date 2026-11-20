@@ -40,9 +40,9 @@ There are a variety of fish colors and patterns that spawn. Below is a list of e
 ##### Black & White Fish
 ![Black & White Sprite](assets/black_white_fish.png)
 ##### White & Orange Fish 1
-![White & Orange1 Sprite](assets/black_white_fish.png)
+![White & Orange1 Sprite](assets/white_orange_fish_1.png)
 ##### White & Orange Fish 2
-![White & Orange2 Sprite](assets/black_white_fish.png)
+![White & Orange2 Sprite](assets/white_orange_fish_2.png)
 
 ### Archived Fish Designs
 ##### White & Pink Fish
